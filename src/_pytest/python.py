@@ -1236,7 +1236,7 @@ class DirectParamFixtureDef(FixtureDef[FixtureValue]):
 
     def __init__(self, *, node: nodes.Node, argname: str, scope: Scope) -> None:
         super().__init__(
-            config=node.config,
+            session=node.session,
             baseid=NOTSET,
             argname=argname,
             func=get_direct_param_fixture_func,

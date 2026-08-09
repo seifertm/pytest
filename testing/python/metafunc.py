@@ -78,6 +78,10 @@ class TestMetafunc:
             _fixturemanager: FixtureManagerMock
             nodeid: ClassVar = ""
 
+            @property
+            def session(self):
+                return self
+
         @dataclasses.dataclass
         class DefinitionMock(python.FunctionDefinition):
             _nodeid: str

@@ -1108,7 +1108,7 @@ class FixtureDef(Generic[FixtureValue]):
 
     def __init__(
         self,
-        config: Config,
+        session: Session,
         baseid: str | NotSetType | None,
         argname: str,
         func: _FixtureFunc[FixtureValue],
@@ -1160,7 +1160,7 @@ class FixtureDef(Generic[FixtureValue]):
         if scope is None:
             scope = Scope.Function
         elif callable(scope):
-            scope = _eval_scope_callable(scope, argname, config)
+            scope = _eval_scope_callable(scope, argname, session.config)
         if isinstance(scope, str):
             scope = Scope.from_user(
                 scope, descr=f"Fixture '{func.__name__}'", where=self.baseid
@@ -1301,7 +1301,7 @@ class RequestFixtureDef(FixtureDef[FixtureRequest]):
 
     def __init__(self, request: FixtureRequest) -> None:
         super().__init__(
-            config=request.config,
+            session=request.session,
             baseid=NOTSET,
             argname="request",
             func=lambda: request,
@@ -2074,7 +2074,7 @@ class FixtureManager:
         if nodeid is not NOTSET or node is NOTSET:
             warnings.warn(FIXTURE_NODEID_DEPRECATED, stacklevel=2)
         fixture_def = FixtureDef(
-            config=self.config,
+            session=self.session,
             baseid=nodeid,
             argname=name,
             func=func,
