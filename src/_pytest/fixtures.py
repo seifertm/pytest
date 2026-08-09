@@ -945,7 +945,7 @@ class SubRequest(FixtureRequest):
         return f"{path}:{lineno + 1}:  def {factory.__name__}{sig}"
 
     def addfinalizer(self, finalizer: Callable[[], object]) -> None:
-        self._fixturedef.addfinalizer(finalizer)
+        self.session._setupstate.fixture_finalizers[self._fixturedef].append(finalizer)
 
 
 @final
@@ -1193,9 +1193,6 @@ class FixtureDef(Generic[FixtureValue]):
         warnings.warn(FIXTUREDEF_HAS_LOCATION_DEPRECATED, stacklevel=2)
         return self._has_location
 
-    def addfinalizer(self, finalizer: Callable[[], object]) -> None:
-        self._finalizers.append(finalizer)
-
     def finish(self, request: SubRequest) -> None:
         fixture_cache = request.session._setupstate.fixture_cache
         if fixture_cache.get(self) is None:
@@ -1270,12 +1267,12 @@ class FixtureDef(Generic[FixtureValue]):
         # adding our finalizer multiple times. (#12135)
         finalizer = functools.partial(self.finish, request=request)
         for parent_fixture in requested_fixtures_that_should_finalize_us:
-            parent_fixture.addfinalizer(finalizer)
+            parent_fixture._finalizers.append(finalizer)
 
         # Register the pytest_fixture_post_finalizer as the first finalizer,
         # which is executed last.
         assert not self._finalizers
-        self.addfinalizer(
+        self._finalizers.append(
             lambda: request.node.ihook.pytest_fixture_post_finalizer(
                 fixturedef=self, request=request
             )
