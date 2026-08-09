@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import bdb
+from collections import defaultdict
 from collections.abc import Callable
 import dataclasses
 import os
 import sys
 import types
+from typing import Any
 from typing import cast
+from typing import Final
 from typing import final
 from typing import Generic
 from typing import Literal
@@ -42,6 +45,7 @@ if sys.version_info < (3, 11):
     from exceptiongroup import BaseExceptionGroup
 
 if TYPE_CHECKING:
+    from _pytest.fixtures import FixtureDef
     from _pytest.main import Session
     from _pytest.terminal import TerminalReporter
 
@@ -513,6 +517,9 @@ class SetupState:
             ],
         ] = {}
         self.fixture_cache = FixtureCache()
+        self.fixture_finalizers: Final[
+            dict[FixtureDef[Any], list[Callable[[], object]]]
+        ] = defaultdict(list)
 
     def is_node_active(self, node: Node) -> bool:
         """Check if a node is currently active in the stack -- set up and not

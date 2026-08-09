@@ -1122,6 +1122,7 @@ class FixtureDef(Generic[FixtureValue]):
         _ispytest: bool = False,
     ) -> None:
         check_ispytest(_ispytest)
+        self._session = session
         # Emit deprecation warning if deprecated baseid string is used.
         if node is NOTSET:
             warnings.warn(FIXTURE_BASEID_DEPRECATED, stacklevel=2)
@@ -1174,10 +1175,13 @@ class FixtureDef(Generic[FixtureValue]):
         self.ids: Final = ids
         # The names requested by the fixtures.
         self.argnames: Final = getfuncargnames(func, name=argname)
-        self._finalizers: Final[list[Callable[[], object]]] = []
 
         # only used to emit a deprecationwarning, can be removed in pytest9
         self._autouse = _autouse
+
+    @property
+    def _finalizers(self) -> list[Callable[[], object]]:
+        return self._session._setupstate.fixture_finalizers[self]
 
     @property
     def scope(self) -> ScopeName:
